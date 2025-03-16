@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/revolution1/static/css/main.d557e028.css",
+    "main.js": "/revolution1/static/js/main.e3cd18ed.js",
+    "static/js/453.7af64cc5.chunk.js": "/revolution1/static/js/453.7af64cc5.chunk.js",
+    "index.html": "/revolution1/index.html",
+    "main.d557e028.css.map": "/revolution1/static/css/main.d557e028.css.map",
+    "main.e3cd18ed.js.map": "/revolution1/static/js/main.e3cd18ed.js.map",
+    "453.7af64cc5.chunk.js.map": "/revolution1/static/js/453.7af64cc5.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.d557e028.css",
+    "static/js/main.e3cd18ed.js"
+  ]
+}
