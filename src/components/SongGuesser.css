@@ -1,0 +1,661 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=IBM+Plex+Mono:wght@400;500;700&display=swap');
+
+:root {
+  /* FiveThirtyEight-inspired color palette */
+  --primary: #ff6b35;          /* Orange accent */
+  --primary-dark: #d05a2d;
+  --secondary: #3d348b;        /* Deep purple */
+  --tertiary: #f7c59f;         /* Light peach */
+  --background: #f8f8f8;
+  --surface: #ffffff;
+  --text-primary: #222222;
+  --text-secondary: #666666;
+  --text-light: #999999;
+  --border-color: #dddddd;
+  --error: #d32f2f;
+  --success: #2e7d32;
+  --elevation-1: 0 1px 3px rgba(0,0,0,0.1);
+  --elevation-2: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+body {
+  background-color: var(--background);
+  font-family: 'IBM Plex Mono', monospace;
+  color: var(--text-primary);
+}
+
+.song-guesser {
+  max-width: 800px;
+  margin: 30px auto;
+  padding: 0;
+  text-align: left;
+  background-color: var(--surface);
+  box-shadow: var(--elevation-1);
+  position: relative;
+  overflow: visible;
+  border: 1px solid var(--border-color);
+  min-height: 600px;
+}
+
+.song-guesser::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: var(--primary);
+}
+
+.app-header {
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
+  text-align: left;
+}
+
+h1 {
+  color: var(--text-primary);
+  margin: 0 0 12px;
+  font-family: 'Space Mono', monospace;
+  font-size: 2.2rem;
+  letter-spacing: -1px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.song-guesser p {
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  max-width: 600px;
+  margin: 8px 0;
+  line-height: 1.5;
+  text-align: left;
+  font-family: 'Space Mono', monospace;
+}
+
+.score-display {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 16px 0 0;
+  color: var(--text-primary);
+  display: inline-block;
+  padding: 5px 0;
+  border-bottom: 3px solid var(--primary);
+  font-family: 'Space Mono', monospace;
+  text-align: left;
+}
+
+.player-container {
+  padding: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  background-color: rgba(0,0,0,0.02);
+}
+
+.player-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 440px;
+}
+
+.play-button-container {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.play-button {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  font-family: 'Space Mono', monospace;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.play-more-button {
+  background-color: #d4e9ff;
+  color: var(--text-primary);
+  border: none;
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  font-family: 'Space Mono', monospace;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.play-more-button:hover {
+  background-color: #bfd9ff;
+}
+
+.play-more-button:disabled {
+  background-color: #f5f5f5;
+  color: var(--text-light);
+  cursor: not-allowed;
+}
+
+.play-button:hover {
+  background-color: var(--primary-dark);
+}
+
+.play-button:disabled {
+  background-color: var(--text-light);
+  cursor: not-allowed;
+}
+
+.guess-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 20px;
+  text-align: left;
+  position: relative;
+  min-height: 150px;
+}
+
+.autocomplete-container {
+  position: relative;
+  width: 100%;
+  z-index: 100;
+}
+
+.guess-input {
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  font-size: 1rem;
+  width: 100%;
+  transition: all 0.2s ease;
+  font-family: 'IBM Plex Mono', monospace;
+}
+
+.guess-input:focus {
+  border-color: var(--primary);
+  outline: none;
+}
+
+.guess-input:disabled {
+  background-color: #f5f5f5;
+  border-color: var(--border-color);
+}
+
+.suggestions-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  background-color: white;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.suggestion-item {
+  padding: 8px 16px;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  font-size: 0.9rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.suggestion-item:last-child {
+  border-bottom: none;
+}
+
+.suggestion-item:hover {
+  background-color: rgba(0,0,0,0.05);
+}
+
+.suggestion-item.selected {
+  background-color: var(--tertiary);
+  font-weight: 700;
+}
+
+.button-group {
+  display: flex;
+  width: 100%;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.submit-button, 
+.give-up-button, 
+.play-full-song-button, 
+.stop-button, 
+.next-button {
+  border: none;
+  padding: 10px 16px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-family: 'Space Mono', monospace;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.submit-button {
+  background-color: #d4e9ff;
+  color: var(--text-primary);
+  border: none;
+  flex: 1;
+  width: 100%;
+}
+
+.submit-button:hover:not(:disabled) {
+  background-color: #bfd9ff;
+}
+
+.submit-button:disabled {
+  background-color: #f5f5f5;
+  color: var(--text-light);
+  cursor: not-allowed;
+}
+
+.give-up-button {
+  background-color: var(--error);
+  color: white;
+  width: 100%;
+}
+
+.give-up-button:hover {
+  background-color: #b71c1c;
+}
+
+.give-up-button:disabled {
+  background-color: var(--text-light);
+  cursor: not-allowed;
+}
+
+.result {
+  margin: 15px auto;
+  padding: 15px;
+  font-weight: 500;
+  font-size: 1rem;
+  width: 100%;
+  max-width: 440px;
+  text-align: left;
+  border-left: 4px solid;
+  font-family: 'Space Mono', monospace;
+}
+
+.correct {
+  background-color: rgba(46, 125, 50, 0.1);
+  color: var(--success);
+  border-color: var(--success);
+}
+
+.incorrect {
+  background-color: rgba(211, 47, 47, 0.1);
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.answer {
+  margin: 15px auto;
+  padding: 15px;
+  width: 100%;
+  max-width: 440px;
+  text-align: left;
+  border-left: 4px solid var(--secondary);
+  background-color: rgba(61, 52, 139, 0.05);
+}
+
+.answer p {
+  margin: 0 0 12px;
+  text-align: left;
+}
+
+.answer strong {
+  font-weight: 700;
+  color: var(--text-primary);
+  font-size: 1.05rem;
+}
+
+.play-full-song-button {
+  background-color: #d4e9ff;
+  color: var(--text-primary);
+  border: none;
+}
+
+.play-full-song-button:hover {
+  background-color: #bfd9ff;
+}
+
+.play-full-song-button:disabled {
+  background-color: #f5f5f5;
+  color: var(--text-light);
+  cursor: not-allowed;
+}
+
+.stop-button {
+  background-color: var(--error);
+  color: white;
+}
+
+.stop-button:hover {
+  background-color: #b71c1c;
+}
+
+.next-button {
+  background-color: var(--primary);
+  color: white;
+}
+
+.next-button:hover {
+  background-color: var(--primary-dark);
+}
+
+/* Record player styles - modernized for the new design */
+.record-player {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 15px;
+  border-radius: 50%;
+  position: relative;
+  background: #111;
+  box-shadow: var(--elevation-1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(0deg);
+  animation: spin 2s linear infinite;
+  animation-play-state: paused;
+  overflow: hidden;
+  border: 8px solid rgba(0,0,0,0.8);
+  align-self: center;
+}
+
+/* Adding vinyl grooves */
+.record-player::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 50%;
+  background: repeating-radial-gradient(
+    circle at center,
+    transparent 0px,
+    transparent 2px,
+    rgba(50, 50, 50, 0.3) 2px,
+    rgba(50, 50, 50, 0.3) 4px
+  );
+  opacity: 0.7;
+}
+
+/* Adding light reflection */
+.record-player::after {
+  content: '';
+  position: absolute;
+  top: -35%;
+  left: -35%;
+  width: 40%;
+  height: 40%;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, transparent 50%);
+  border-radius: 50%;
+  transform: rotate(-45deg);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Fix for the record player animation */
+.playing .record-player {
+  animation-play-state: running;
+}
+
+.record-center {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--tertiary);
+  position: relative;
+  z-index: 1;
+}
+
+.record-center::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background-color: #000;
+}
+
+/* Adding label ring */
+.record-center::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #333 0%, #222 80%);
+  z-index: -1;
+}
+
+.form-heading {
+  font-size: 1rem;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  font-family: 'Space Mono', monospace;
+  text-transform: uppercase;
+}
+
+.musical-note {
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.footer {
+  margin-top: 0;
+  padding: 20px;
+  font-size: 0.8rem;
+  color: var(--text-primary);
+  background-color: #f8f8f8;
+  border-top: 1px solid var(--border-color);
+  font-family: 'IBM Plex Mono', monospace;
+  text-align: left;
+}
+
+.footer p:first-child {
+  font-weight: 700;
+  margin-bottom: 12px;
+  font-family: 'Space Mono', monospace;
+}
+
+.footer-links {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.footer-links a {
+  color: #1976d2;
+  text-decoration: none;
+  font-family: 'Space Mono', monospace;
+  font-size: 0.75rem;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
+/* YouTube player styles */
+.youtube-hidden {
+  position: absolute;
+  width: 0;
+  height: 0;
+  overflow: hidden;
+}
+
+.keyboard-tip-container {
+  height: 28px; /* Consistent height to prevent layout shifts */
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keyboard-tip {
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  font-style: italic;
+  margin: 5px 0;
+  font-family: 'IBM Plex Mono', monospace;
+  width: 100%;
+  text-align: center;
+}
+
+.keyboard-tip.error {
+  color: var(--error);
+  font-weight: 500;
+}
+
+.social-links {
+  margin: 15px 0;
+  width: 100%;
+  max-width: 440px;
+}
+
+.social-links p {
+  margin: 8px 0;
+}
+
+.social-links a {
+  color: #1976d2;
+  text-decoration: none;
+  font-family: 'Space Mono', monospace;
+  transition: color 0.2s ease;
+}
+
+.social-links a:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
+/* Improve mobile layout */
+@media (max-width: 600px) {
+  .song-guesser {
+    margin: 0;
+    border-width: 0;
+    min-height: 500px; /* Reduced minimum height for mobile */
+    overflow: visible; /* Ensure dropdowns are visible */
+  }
+  
+  h1 {
+    font-size: 1.8rem;
+  }
+  
+  .song-guesser p {
+    font-size: 0.9rem;
+  }
+  
+  .play-button {
+    padding: 12px 20px;
+    font-size: 0.85rem;
+  }
+  
+  .play-more-button {
+    padding: 10px;
+    font-size: 0.85rem;
+  }
+
+  .player-buttons {
+    width: 100%;
+  }
+  
+  .play-button-container {
+    width: 100%;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+  }
+  
+  .submit-button, 
+  .give-up-button, 
+  .play-full-song-button, 
+  .stop-button, 
+  .next-button {
+    width: 100%;
+    max-width: 280px;
+  }
+  
+  /* Ensure autocomplete is visible on mobile */
+  .suggestions-list {
+    position: absolute;
+    z-index: 1500;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    max-height: 180px;
+  }
+  
+  /* Ensure result and answer containers have proper spacing */
+  .result, .answer {
+    margin: 10px 20px;
+    width: auto;
+    max-width: none;
+  }
+} 
