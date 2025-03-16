@@ -1,112 +1,43 @@
-# Beatles Song Guesser
+# Revolution 1
 
-A fun web app that tests your knowledge of Beatles songs by playing the first second of a song and challenging you to guess the title.
+A 1-second Beatles song identification game, challenging you to recognize Beatles songs from just the first second of audio.
 
-## Features
+## Play the Game
 
-- Random selection from a curated list of Beatles songs
-- Plays just the first second of each song via YouTube embed
-- Score tracking
-- Responsive design that works on mobile and desktop
+**[Play Revolution 1 here](https://akharazian.github.io/revolution1/)**
 
-## Installation
-
-1. Clone the repository
-2. Install dependencies
-   ```
-   npm install
-   ```
-3. Start the development server
-   ```
-   npm start
-   ```
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+No installation needed! The game is hosted on GitHub Pages and can be played directly in your browser on both desktop and mobile devices.
 
 ## How to Play
 
-1. Click the "Play Song Clip" button to hear the first second of a Beatles song
-2. Enter your guess in the input field
-3. Click "Submit Guess" to check your answer
-4. Click "Next Song" to move on to the next challenge
-5. Try to get as many correct as possible!
+1. Click "PLAY 1 SECOND" to hear the first second of a randomly selected Beatles song
+2. Type your guess in the input field (autocomplete will help with song titles)
+3. Click "SUBMIT" to check your answer
+4. If you're stuck, you can add more seconds with the "+1" button
+5. Click "GIVE UP" if you can't figure it out
+6. After answering, listen to the full song and then continue to the next challenge
+7. Try to get as many correct as possible!
 
-## Technologies Used
+## Features
 
-- React
-- YouTube API (via react-youtube)
-- CSS for styling
+* Random selection from the Beatles core discography
+* Plays just the first second of each song (with option to hear more)
+* Autocomplete to help with song titles
+* Score tracking
+* Full song playback after each answer
+* Responsive design that works on both mobile and desktop
 
-## License
+## Technologies
 
-MIT
+* React
+* YouTube API (via react-youtube)
+* CSS for styling
 
-# Getting Started with Create React App
+## About
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Revolution 1, a 1-second Beatles song identification game, was developed by Ara Kharazian.
 
-## Available Scripts
-
-In the project directory, you can run:
-
-### `npm start`
-
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
-
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
-
-### `npm test`
-
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
-
-### `npm run build`
-
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
-
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
-
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+* [Personal Website](https://arakharazian.com)
+* [Twitter / X](https://twitter.com/arakharazian)
+* [LinkedIn](https://linkedin.com/in/arakharazian)
+* [Substack](https://substack.com/@arakharazian)
