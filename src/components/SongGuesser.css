@@ -337,6 +337,7 @@ h1 {
   text-align: left;
   border-left: 4px solid var(--secondary);
   background-color: rgba(61, 52, 139, 0.05);
+  position: relative;
 }
 
 .answer p {
@@ -348,6 +349,36 @@ h1 {
   font-weight: 700;
   color: var(--text-primary);
   font-size: 1.05rem;
+}
+
+.answer-buttons {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  margin-bottom: 15px;
+  position: relative;
+  z-index: 10;
+}
+
+.prominent-next {
+  background-color: var(--secondary);
+  font-size: 1rem;
+  padding: 14px 24px;
+  position: relative;
+  border-radius: 4px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+  transition: all 0.2s ease;
+}
+
+.prominent-next:hover {
+  background-color: #2e266a;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.prominent-next:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
 .play-full-song-button {
@@ -542,11 +573,24 @@ h1 {
 }
 
 /* YouTube player styles */
-.youtube-hidden {
+.youtube-player {
   position: absolute;
   width: 0;
   height: 0;
   overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+}
+
+.youtube-player.hidden {
+  height: 0;
+  width: 0;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
 }
 
 .keyboard-tip-container {
@@ -657,5 +701,47 @@ h1 {
     margin: 10px 20px;
     width: auto;
     max-width: none;
+    position: relative;
   }
+  
+  .answer-buttons {
+    margin-top: 15px;
+  }
+  
+  .prominent-next {
+    padding: 16px 24px;
+    margin: 10px 0;
+    font-size: 1.1rem; /* Larger font for mobile */
+  }
+}
+
+/* Add mobile-specific styles */
+@media (max-width: 768px) {
+  .play-button, .play-more-button, .give-up-button, .submit-button, .next-button {
+    padding: 12px; /* Larger touch targets for mobile */
+  }
+  
+  .prominent-next {
+    padding: 16px 24px;
+    margin: 10px 0;
+  }
+  
+  .guess-input {
+    font-size: 16px; /* Prevent iOS zoom on input focus */
+    padding: 10px;
+  }
+}
+
+/* Add iOS-specific fixes for YouTube player */
+iframe[src*="youtube"] {
+  width: 1px !important;
+  height: 1px !important;
+  min-width: 1px !important;
+  min-height: 1px !important;
+  opacity: 0.01 !important; /* Not fully 0 to allow iOS to play it */
+  position: absolute !important;
+  bottom: 0 !important;
+  left: 0 !important;
+  pointer-events: none !important;
+  z-index: -1 !important;
 } 

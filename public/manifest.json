@@ -1,21 +1,11 @@
 {
   "short_name": "Revolution 1",
-  "name": "Revolution 1 - Beatles Identification",
+  "name": "Revolution 1 - Beatles Song Identifier",
   "icons": [
     {
-      "src": "beatles_album.jpg",
+      "src": "favicon.ico",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/jpeg"
-    },
-    {
-      "src": "beatles_album.jpg",
-      "type": "image/jpeg",
-      "sizes": "192x192"
-    },
-    {
-      "src": "beatles_album.jpg",
-      "type": "image/jpeg",
-      "sizes": "512x512"
+      "type": "image/x-icon"
     }
   ],
   "start_url": ".",
