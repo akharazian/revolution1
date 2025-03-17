@@ -6,7 +6,7 @@
   --primary-dark: #d05a2d;
   --secondary: #3d348b;        /* Deep purple */
   --tertiary: #f7c59f;         /* Light peach */
-  --background: #f8f8f8;
+  --background: #fff;          /* Changed from #f8f8f8 to #fff to match deployed version */
   --surface: #ffffff;
   --text-primary: #222222;
   --text-secondary: #666666;
@@ -24,6 +24,33 @@ body {
   color: var(--text-primary);
 }
 
+/* Force white background regardless of dark mode */
+#root, body, html, .app, div, div[class*="App"], div[class*="app"], #root > div {
+  background-color: #fff !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  #root, body, html, .app, div, div[class*="App"], div[class*="app"], #root > div {
+    background-color: #fff !important;
+    color: var(--text-primary) !important;
+  }
+}
+
+/* Add back-layer to ensure white background */
+body:after {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: #fff;
+  z-index: -10;
+  pointer-events: none;
+}
+
 .song-guesser {
   max-width: 800px;
   margin: 30px auto;
@@ -35,6 +62,7 @@ body {
   overflow: visible;
   border: 1px solid var(--border-color);
   min-height: 600px;
+  z-index: 1;
 }
 
 .song-guesser::before {
@@ -73,12 +101,12 @@ h1 {
   font-family: 'Space Mono', monospace;
 }
 
+/* Restore original score display style while making it work with the new layout */
 .score-display {
   font-size: 1.1rem;
   font-weight: 700;
   margin: 16px 0 0;
   color: var(--text-primary);
-  display: inline-block;
   padding: 5px 0;
   border-bottom: 3px solid var(--primary);
   font-family: 'Space Mono', monospace;
@@ -599,6 +627,7 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+  text-align: center; /* Add this to ensure text alignment */
 }
 
 .keyboard-tip {
@@ -607,8 +636,9 @@ h1 {
   font-style: italic;
   margin: 5px 0;
   font-family: 'IBM Plex Mono', monospace;
-  width: 100%;
-  text-align: center;
+  text-align: center; /* Ensure text is centered */
+  display: inline-block; /* Change to inline-block */
+  width: auto; /* Change from 100% to auto */
 }
 
 .keyboard-tip.error {
@@ -744,4 +774,80 @@ iframe[src*="youtube"] {
   left: 0 !important;
   pointer-events: none !important;
   z-index: -1 !important;
+}
+
+/* Add styles for the game controls container */
+.game-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+/* Style for the toggle switch */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: #ccc;
+  border-radius: 34px;
+  margin-right: 8px;
+  transition: .4s;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 16px;
+  width: 16px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  border-radius: 50%;
+  transition: .4s;
+}
+
+input:checked + .toggle-slider {
+  background-color: #2196F3;
+}
+
+input:checked + .toggle-slider:before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-weight: 600;
+  margin-right: 5px;
+}
+
+.toggle-hint {
+  font-size: 0.8em;
+  opacity: 0.7;
+}
+
+/* Media query for mobile devices */
+@media (max-width: 600px) {
+  .game-controls {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .mode-toggle {
+    margin-top: 10px;
+  }
 } 

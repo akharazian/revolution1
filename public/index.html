@@ -4,29 +4,95 @@
     <meta charset="utf-8" />
     <link rel="icon" href="%PUBLIC_URL%/beatles_album.jpg" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#ffffff" />
     <meta
       name="description"
-      content="Practice and test your knowledge of the Beatles core discography using the first second of every song"
+      content="Test your Beatles knowledge with Revolution 1, a game that challenges you to identify Beatles songs from just the first second of audio."
     />
+    <meta name="keywords" content="Beatles, music game, song identification, Revolution 1, Beatles trivia, music quiz"/>
+    <meta name="author" content="Ara Kharazian"/>
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website"/>
+    <meta property="og:url" content="https://akharazian.github.io/revolution1/"/>
+    <meta property="og:site_name" content="Revolution 1"/>
+    <meta property="og:title" content="Revolution 1 - Beatles Song Identification Game"/>
+    <meta property="og:description" content="Test your Beatles knowledge with Revolution 1, a game that challenges you to identify Beatles songs from just the first second of audio."/>
+    <meta property="og:image" content="https://akharazian.github.io/revolution1/beatles_album.jpg"/>
+    <meta property="og:image:width" content="1200"/>
+    <meta property="og:image:height" content="630"/>
+    <meta property="og:image:alt" content="Beatles Album Cover - Revolution 1 Game"/>
+    <meta property="og:locale" content="en_US"/>
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image"/>
+    <meta name="twitter:creator" content="@arakharazian"/>
+    <meta name="twitter:site" content="@arakharazian"/>
+    <meta name="twitter:title" content="Revolution 1 - Beatles Song Identification Game"/>
+    <meta name="twitter:description" content="Test your Beatles knowledge with Revolution 1, a game that challenges you to identify Beatles songs from just the first second of audio."/>
+    <meta name="twitter:image" content="https://akharazian.github.io/revolution1/beatles_album.jpg"/>
+    <meta name="twitter:image:alt" content="Beatles Album Cover - Revolution 1 Game"/>
+    
+    <link rel="canonical" href="https://akharazian.github.io/revolution1/"/>
     <link rel="apple-touch-icon" href="%PUBLIC_URL%/beatles_album.jpg" />
-    <!--
-      manifest.json provides metadata used when your web app is installed on a
-      user's mobile device or desktop. See https://developers.google.com/web/fundamentals/web-app-manifest/
-    -->
     <link rel="manifest" href="%PUBLIC_URL%/manifest.json" />
-    <!--
-      Notice the use of %PUBLIC_URL% in the tags above.
-      It will be replaced with the URL of the `public` folder during the build.
-      Only files inside the `public` folder can be referenced from the HTML.
-
-      Unlike "/favicon.ico" or "favicon.ico", "%PUBLIC_URL%/favicon.ico" will
-      work correctly both with client-side routing and a non-root public URL.
-      Learn how to configure a non-root public URL by running `npm run build`.
-    -->
-    <title>Revolution 1 - Beatles Identification</title>
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Revolution 1",
+        "description": "A Beatles song identification game that challenges players to identify songs from just the first second of audio.",
+        "url": "https://akharazian.github.io/revolution1/",
+        "applicationCategory": "GameApplication",
+        "genre": "Music Quiz",
+        "operatingSystem": "Web Browser",
+        "author": {
+          "@type": "Person",
+          "name": "Ara Kharazian",
+          "url": "https://arakharazian.com"
+        },
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      }
+    </script>
+    
+    <title>Revolution 1 - Beatles Song Identification Game</title>
+    
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      .page-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #fff;
+        z-index: -1000;
+      }
+      body, html {
+        width: 100%;
+        height: 100%;
+        background-color: #fff;
+      }
+      #root {
+        min-height: 100%;
+        background-color: #fff;
+        position: relative;
+        z-index: 1;
+      }
+    </style>
   </head>
   <body>
+    <div class="page-background"></div>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
     <!--

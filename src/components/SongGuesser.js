@@ -3,6 +3,59 @@ import YouTube from 'react-youtube';
 import songs from '../data/songs';
 import './SongGuesser.css';
 
+// Easy mode songs list - popular Beatles songs
+const easySongs = [
+  "GKdl-GCsNJ0", // Here Comes The Sun
+  "wqaKHHxQFZc", // Come Together
+  "AbNFLI720_U", // Let It Be
+  "vZRzJJcbHkE", // Yesterday
+  "mQER0A0ej0M", // Hey Jude
+  "xOW5rMkDcEY", // Twist And Shout
+  "HHnxMRm-VRM", // Blackbird
+  "YBcdt6DsLQA", // In My Life
+  "v1HDt1tknTc", // I Want To Hold Your Hand
+  "MZ3Vh8jZFdE", // Something
+  "W3AV2d0Za9s", // Help!
+  "rblYSKz_VnI",  // Eleanor Rigby
+  "YFDg-pgE0Hk", // While My Guitar Gently Weeps
+  "vYEY5Jmz3pU", // Ob-La-Di, Ob-La-Da
+  "0pGOFX1D_jg", // Love Me Do
+  "5tc0gLSSU1M", // And I Love Her
+  "AMSiHdrHl0g", // A Hard Day's Night
+  "Y_V6y1ZCg_8", // Norwegian Wood (This Bird Has Flown)
+  "gS_-aHQxUqw", // Strawberry Fields Forever
+  "4EGczv7iiEk", // All You Need Is Love
+  "xNQXWAeLo3s", // Get Back
+  "TSpiwK5fig0",  // All My Loving
+  "oxwAB3SECtc", // I Saw Her Standing There
+  "l7x-0c9jl4Y", // Lucy In The Sky With Diamonds
+  "2IbPn5j2YKk", // Day Tripper
+  "Xz1g63DlVAU", // Don't Let Me Down
+  "h3WJiqc_bEs", // Can't Buy Me Love
+  "oVCwDl-S09A", // She Loves You
+  "UHsN9d4FTVI", // Ticket To Ride
+  "0wE0G9GTCAs", // Penny Lane
+  "WoBLi5eE-wY", // Michelle
+  "erMgpfiOMSU", // Oh! Darling
+  "XTfmuDjwQTw", // Eight Days A Week
+  "P2C3f0Atcoo", // Hello, Goodbye
+  "KuqMJ9qdflw", // Yellow Submarine
+  "eqUzU552X8A", // Across The Universe
+  "GooL7-iPMYI", // With A Little Help From My Friends
+  "V8nLraecPRY", // You've Got To Hide Your Love Away
+  "yOYArc7mFiE", // Back In The U.S.S.R.
+  "YSGHER4BWME", // A Day In The Life
+  "GLkhWfVIxi8", // The Long And Winding Road
+  "IgRrWPdzkao", // We Can Work It Out
+  "hwi2ynHPB80", // Golden Slumbers
+  "SZBsVbKROV0", // I Will
+  "kfSQkZuIx84", // Drive My Car
+  "6MbqzDm1uCo", // Revolution
+  "vs7U4xfkAfI", // Here, There, And Everywhere
+  "xLBVgnZyuic", // I Feel Fine
+  "xwwABrNLvFs"  // Sgt. Pepper's Lonely Hearts Club Band
+];
+
 const SongGuesser = () => {
   const [currentSong, setCurrentSong] = useState(null);
   const [guess, setGuess] = useState('');
@@ -20,6 +73,8 @@ const SongGuesser = () => {
   const [playerLoadRetries, setPlayerLoadRetries] = useState(0); // Track number of player load retries
   const [playerKey, setPlayerKey] = useState(Date.now()); // Key to force YouTube component re-render
   const [playbackTimedOut, setPlaybackTimedOut] = useState(false); // Track if playback timed out
+  const [playedSongs, setPlayedSongs] = useState([]); // Track songs that have been played
+  const [easyMode, setEasyMode] = useState(true); // Track if easy mode is enabled - now true by default
   const youtubePlayerRef = useRef(null);
   const suggestionsRef = useRef(null);
   const clipTimerRef = useRef(null); // Ref for the timer to clean up properly
@@ -32,59 +87,52 @@ const SongGuesser = () => {
     return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   }, []);
   
-  // Memoize selectRandomSong
-  const selectRandomSong = useCallback(() => {
-    const randomIndex = Math.floor(Math.random() * songs.length);
-    setCurrentSong(songs[randomIndex]);
-    setGuess('');
-    setResult('');
-    setShowAnswer(false);
-    setIsPlaying(false);
-    setIsWaitingForPlayback(false);
-    setSuggestions([]);
-    setShowSuggestions(false);
-    setClipDuration(1); // Reset clip duration to 1 second
-    setAttemptsCount(0); // Reset attempts counter
-    setPlayingFullSong(false); // Reset full song playback status
-    setSelectedSuggestionIndex(-1); // Reset selected suggestion
-    setPlaybackTimedOut(false); // Reset timeout state
-    
-    // Clear any existing timer
-    if (clipTimerRef.current) {
-      clearTimeout(clipTimerRef.current);
-      clipTimerRef.current = null;
-    }
-    
-    if (playbackTimeoutRef.current) {
-      clearTimeout(playbackTimeoutRef.current);
-      playbackTimeoutRef.current = null;
-    }
-    
-    // Focus on input after a short delay to ensure DOM is updated, but only on desktop
-    if (!isMobileDevice()) {
-      setTimeout(() => {
-        if (guessInputRef.current) {
-          guessInputRef.current.focus();
-        }
-      }, 100);
-    }
-  }, [isMobileDevice]);
+  // Helper function to normalize strings by removing apostrophes
+  const normalizeString = useCallback((str) => {
+    return str.toLowerCase().trim().replace(/[']/g, '');
+  }, []);
 
-  // Enhanced function to reload YouTube player
-  const reloadYouTubePlayer = useCallback(() => {
-    // Only retry if we haven't exceeded the maximum retries (5)
-    if (playerLoadRetries < 5) {
-      console.log(`Reloading YouTube player, retry ${playerLoadRetries + 1}`);
+  // Toggle easy mode
+  const toggleEasyMode = useCallback(() => {
+    setEasyMode(prevMode => !prevMode);
+    // Reset played songs when switching modes
+    setPlayedSongs([]);
+    // Select a new song based on the new mode
+    setTimeout(() => {
+      // Using anonymous function to avoid the circular dependency
+      const songPool = !easyMode ? 
+        songs.filter(song => easySongs.includes(song.videoId)) : 
+        songs;
       
-      // Clean up any existing timers
+      // Pick any random song from the new pool
+      const randomIndex = Math.floor(Math.random() * songPool.length);
+      const newSong = songPool[randomIndex];
+      setCurrentSong(newSong);
+      setPlayedSongs([newSong.videoId]);
+      
+      // Reset all other state variables
+      setGuess('');
+      setResult('');
+      setShowAnswer(false);
+      setIsPlaying(false);
+      setIsWaitingForPlayback(false);
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setClipDuration(1);
+      setAttemptsCount(0);
+      setPlayingFullSong(false);
+      setSelectedSuggestionIndex(-1);
+      setPlaybackTimedOut(false);
+    }, 0);
+  }, [easyMode]);
+
+  // Function to reload YouTube player when issues occur
+  const reloadYouTubePlayer = useCallback(() => {
+    if (playerLoadRetries < 3) {
+      // Clear any existing timers
       if (clipTimerRef.current) {
         clearTimeout(clipTimerRef.current);
         clipTimerRef.current = null;
-      }
-      
-      if (playerLoadTimerRef.current) {
-        clearTimeout(playerLoadTimerRef.current);
-        playerLoadTimerRef.current = null;
       }
       
       if (playbackTimeoutRef.current) {
@@ -109,6 +157,198 @@ const SongGuesser = () => {
     }
   }, [playerLoadRetries]);
 
+  // Define playSongClip before it's used in the useEffect hooks
+  const playSongClip = useCallback(() => {
+    try {
+      // Clear any existing playback timeout
+      if (playbackTimeoutRef.current) {
+        clearTimeout(playbackTimeoutRef.current);
+        playbackTimeoutRef.current = null;
+      }
+      
+      setPlaybackTimedOut(false);
+      
+      if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.playVideo !== 'function') {
+        console.warn("YouTube player not ready when attempting to play, reloading player...");
+        reloadYouTubePlayer();
+        
+        // Show a temporary message to the user
+        setIsWaitingForPlayback(true);
+        
+        // Set a timeout to retry playing after a short delay
+        setTimeout(() => {
+          if (youtubePlayerRef.current && typeof youtubePlayerRef.current.playVideo === 'function') {
+            // Retry playing if player is ready now
+            youtubePlayerRef.current.seekTo(0);
+            
+            // On mobile, we need to ensure mute is off (some browsers require this)
+            try {
+              youtubePlayerRef.current.unMute();
+              youtubePlayerRef.current.setVolume(100);
+            } catch (e) {
+              console.warn("Could not unmute player:", e);
+            }
+            
+            youtubePlayerRef.current.playVideo();
+          } else {
+            // Reset state if still not ready after delay
+            setIsWaitingForPlayback(false);
+            setIsPlaying(false);
+          }
+        }, 1500);
+        
+        return;
+      }
+      
+      setIsPlaying(true);
+      setPlayingFullSong(false);
+      setIsWaitingForPlayback(true); // Indicate we're waiting for playback to start
+      
+      // Seek to beginning to ensure we're starting from 0:00
+      youtubePlayerRef.current.seekTo(0);
+      
+      // On mobile, we need to ensure mute is off (some browsers require this)
+      try {
+        youtubePlayerRef.current.unMute();
+        youtubePlayerRef.current.setVolume(100);
+      } catch (e) {
+        console.warn("Could not unmute player:", e);
+      }
+      
+      youtubePlayerRef.current.playVideo();
+      
+      // Set a timeout to detect if playback doesn't start within 3 seconds (reduced from 5)
+      playbackTimeoutRef.current = setTimeout(() => {
+        if (isWaitingForPlayback) {
+          console.warn("Playback didn't start within 3 seconds, retrying...");
+          // Instead of just reloading, attempt to play again first
+          try {
+            youtubePlayerRef.current.seekTo(0);
+            youtubePlayerRef.current.playVideo();
+            
+            // Set another timeout to check if the second attempt works
+            setTimeout(() => {
+              if (isWaitingForPlayback) {
+                console.warn("Second playback attempt failed, reloading player...");
+                reloadYouTubePlayer();
+              }
+            }, 3000);
+          } catch (error) {
+            console.error("Error during retry attempt:", error);
+            reloadYouTubePlayer();
+          }
+        }
+      }, 3000); // Reduced from 5000 to 3000ms
+      
+    } catch (error) {
+      console.error("Error playing song clip:", error);
+      // Reset the state in case of an error
+      setIsPlaying(false);
+      setIsWaitingForPlayback(false);
+      
+      // Try to reload the player
+      reloadYouTubePlayer();
+    }
+  }, [reloadYouTubePlayer, isWaitingForPlayback]); // Added isWaitingForPlayback to dependencies
+  
+  // Define playFullSong before it's potentially used in other functions
+  const playFullSong = useCallback(() => {
+    try {
+      // Clear any existing playback timeout
+      if (playbackTimeoutRef.current) {
+        clearTimeout(playbackTimeoutRef.current);
+        playbackTimeoutRef.current = null;
+      }
+      
+      setPlaybackTimedOut(false);
+      
+      if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.playVideo !== 'function') {
+        console.warn("YouTube player not ready when attempting to play full song, reloading player...");
+        reloadYouTubePlayer();
+        
+        // Show a temporary message to the user
+        setIsWaitingForPlayback(true);
+        
+        // Set a timeout to retry playing after a short delay
+        setTimeout(() => {
+          if (youtubePlayerRef.current && typeof youtubePlayerRef.current.playVideo === 'function') {
+            // Retry playing if player is ready now
+            youtubePlayerRef.current.seekTo(0);
+            
+            // On mobile, we need to ensure mute is off (some browsers require this)
+            try {
+              youtubePlayerRef.current.unMute();
+              youtubePlayerRef.current.setVolume(100);
+            } catch (e) {
+              console.warn("Could not unmute player:", e);
+            }
+            
+            youtubePlayerRef.current.playVideo();
+          } else {
+            // Reset state if still not ready after delay
+            setIsWaitingForPlayback(false);
+            setIsPlaying(false);
+            setPlayingFullSong(false);
+          }
+        }, 1500);
+        
+        return;
+      }
+      
+      setIsPlaying(true);
+      setPlayingFullSong(true);
+      setIsWaitingForPlayback(true); // Indicate we're waiting for playback to start
+      
+      // Seek to beginning to ensure we're starting from 0:00
+      youtubePlayerRef.current.seekTo(0);
+      
+      // On mobile, we need to ensure mute is off (some browsers require this)
+      try {
+        youtubePlayerRef.current.unMute();
+        youtubePlayerRef.current.setVolume(100);
+      } catch (e) {
+        console.warn("Could not unmute player:", e);
+      }
+      
+      youtubePlayerRef.current.playVideo();
+      
+      // Set a timeout to detect if full song playback doesn't start within 3 seconds
+      playbackTimeoutRef.current = setTimeout(() => {
+        if (isWaitingForPlayback) {
+          console.warn("Full song playback didn't start within 3 seconds, retrying...");
+          // Try again before giving up
+          try {
+            youtubePlayerRef.current.seekTo(0);
+            youtubePlayerRef.current.playVideo();
+            
+            // Set another timeout to check if the second attempt works
+            setTimeout(() => {
+              if (isWaitingForPlayback) {
+                console.warn("Second full song playback attempt failed, reloading player...");
+                reloadYouTubePlayer();
+                setPlayingFullSong(false);
+              }
+            }, 3000);
+          } catch (error) {
+            console.error("Error during retry attempt:", error);
+            reloadYouTubePlayer();
+            setPlayingFullSong(false);
+          }
+        }
+      }, 3000);
+      
+    } catch (error) {
+      console.error("Error playing full song:", error);
+      // Reset the state in case of an error
+      setIsPlaying(false);
+      setIsWaitingForPlayback(false);
+      setPlayingFullSong(false);
+      
+      // Try to reload the player
+      reloadYouTubePlayer();
+    }
+  }, [reloadYouTubePlayer, isWaitingForPlayback]); // Added isWaitingForPlayback to dependencies
+  
   // Function to check if YouTube player is ready
   const checkYouTubePlayerReady = useCallback(() => {
     if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.playVideo !== 'function') {
@@ -120,6 +360,78 @@ const SongGuesser = () => {
       setPlayerLoadRetries(0);
     }
   }, [reloadYouTubePlayer]);
+
+  // Memoize selectRandomSong 
+  const selectRandomSong = useCallback((isModeSwitching = false) => {
+    // Determine which song collection to use based on mode
+    const songPool = easyMode ? 
+      songs.filter(song => easySongs.includes(song.videoId)) : 
+      songs;
+    
+    if (isModeSwitching) {
+      // If switching modes, just pick any random song from the new pool
+      const randomIndex = Math.floor(Math.random() * songPool.length);
+      const newSong = songPool[randomIndex];
+      setCurrentSong(newSong);
+      setPlayedSongs([newSong.videoId]);
+    } else {
+      // Filter out songs that have already been played
+      const availableSongs = songPool.filter(song => !playedSongs.includes(song.videoId));
+      
+      // If all songs have been played, reset the played songs list
+      if (availableSongs.length === 0) {
+        setPlayedSongs([]);
+        console.log(`All ${easyMode ? 'easy' : ''} songs have been played. Resetting song list.`);
+        // Select a random song from the entire pool for the current mode
+        const randomIndex = Math.floor(Math.random() * songPool.length);
+        const newSong = songPool[randomIndex];
+        setCurrentSong(newSong);
+        // Start tracking played songs again with just this song
+        setPlayedSongs([newSong.videoId]);
+      } else {
+        // Select a random song from the available songs
+        const randomIndex = Math.floor(Math.random() * availableSongs.length);
+        const newSong = availableSongs[randomIndex];
+        setCurrentSong(newSong);
+        // Add this song to the played songs list
+        setPlayedSongs(prev => [...prev, newSong.videoId]);
+      }
+    }
+    
+    // Reset all other state variables as before
+    setGuess('');
+    setResult('');
+    setShowAnswer(false);
+    setIsPlaying(false);
+    setIsWaitingForPlayback(false);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setClipDuration(1); // Reset clip duration to 1 second
+    setAttemptsCount(0); // Reset attempts counter
+    setPlayingFullSong(false); // Reset full song playback status
+    setSelectedSuggestionIndex(-1); // Reset selected suggestion
+    setPlaybackTimedOut(false); // Reset timeout state
+    
+    // Clear any existing timer
+    if (clipTimerRef.current) {
+      clearTimeout(clipTimerRef.current);
+      clipTimerRef.current = null;
+    }
+    
+    if (playbackTimeoutRef.current) {
+      clearTimeout(playbackTimeoutRef.current);
+      playbackTimeoutRef.current = null;
+    }
+    
+    // Only focus on input for desktop devices - removed for mobile to prevent auto-scrolling
+    if (!isMobileDevice()) {
+      setTimeout(() => {
+        if (guessInputRef.current) {
+          guessInputRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [isMobileDevice, playedSongs, easyMode]);
 
   // Memoize handleNextSong to prevent unnecessary re-renders and dependency issues
   const handleNextSong = useCallback(() => {
@@ -154,13 +466,28 @@ const SongGuesser = () => {
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event) => {
+      // Only handle global keyboard events if they're not from an input field
+      const isFromInput = event.target.tagName.toLowerCase() === 'input' || 
+                         event.target.tagName.toLowerCase() === 'textarea';
+      
       // If Enter is pressed and the answer is shown, go to next song
-      if (event.key === 'Enter' && showAnswer) {
+      if (event.key === 'Enter' && showAnswer && !isFromInput) {
+        event.preventDefault(); // Prevent form submission
         handleNextSong();
       }
       
+      // Play the song with Enter key if not typing in an input and not already playing
+      if (event.key === 'Enter' && !showAnswer && !isPlaying && !isFromInput) {
+        event.preventDefault(); // Prevent form submission
+        
+        // Only try to play if we have a valid player reference
+        if (youtubePlayerRef.current) {
+          playSongClip();
+        }
+      }
+      
       // Focus on the input field when the game starts, but only on desktop
-      if (!showAnswer && !isPlaying && !isMobileDevice() && guessInputRef.current) {
+      if (!showAnswer && !isPlaying && !isMobileDevice() && guessInputRef.current && !isFromInput) {
         guessInputRef.current.focus();
       }
     };
@@ -169,14 +496,17 @@ const SongGuesser = () => {
     return () => {
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [showAnswer, isPlaying, handleNextSong, isMobileDevice]);
+  }, [showAnswer, isPlaying, handleNextSong, isMobileDevice, playSongClip]);
   
-  // Focus input after playback stops
+  // Focus input after playback stops - only for desktop or after user has interacted
   useEffect(() => {
-    if (!isPlaying && !showAnswer && !isMobileDevice() && guessInputRef.current) {
+    // Focus the input field after playback if not on mobile,
+    // or if we're on mobile but the user has already started playing (clipDuration > 1)
+    if (!isPlaying && !showAnswer && guessInputRef.current && 
+        (!isMobileDevice() || clipDuration > 1)) {
       guessInputRef.current.focus();
     }
-  }, [isPlaying, showAnswer, isMobileDevice]);
+  }, [isPlaying, showAnswer, isMobileDevice, clipDuration]);
 
   // Cleanup timer on unmount
   useEffect(() => {
@@ -200,10 +530,42 @@ const SongGuesser = () => {
 
   // Load initial song
   useEffect(() => {
-    selectRandomSong();
-  }, [selectRandomSong]);
+    // Determine which song collection to use based on mode
+    const songPool = easyMode ? 
+      songs.filter(song => easySongs.includes(song.videoId)) : 
+      songs;
+      
+    // On initial load, select a random song and add it to played songs
+    const initialIndex = Math.floor(Math.random() * songPool.length);
+    const initialSong = songPool[initialIndex];
+    setCurrentSong(initialSong);
+    setPlayedSongs([initialSong.videoId]);
+    
+    // Reset all other state variables
+    setGuess('');
+    setResult('');
+    setShowAnswer(false);
+    setIsPlaying(false);
+    setIsWaitingForPlayback(false);
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setClipDuration(1);
+    setAttemptsCount(0);
+    setPlayingFullSong(false);
+    setSelectedSuggestionIndex(-1);
+    setPlaybackTimedOut(false);
+    
+    // Only focus on input for desktop devices
+    if (!isMobileDevice()) {
+      setTimeout(() => {
+        if (guessInputRef.current) {
+          guessInputRef.current.focus();
+        }
+      }, 100);
+    }
+  }, [isMobileDevice, easyMode]); // Add easyMode as a dependency
 
-  // Handle keyboard navigation for autocomplete
+  // Handling the input field's keydown events separately
   const handleInputKeyDown = (e) => {
     try {
       // Only handle keyboard navigation when suggestions are visible
@@ -259,11 +621,23 @@ const SongGuesser = () => {
     const userInput = e.target.value;
     setGuess(userInput);
     
-    // Filter songs for suggestions
+    // If on mobile, ensure input has focus once user starts typing
+    if (isMobileDevice() && guessInputRef.current) {
+      guessInputRef.current.focus();
+    }
+    
+    // Filter songs for suggestions based on current mode
     if (userInput.trim()) {
-      const filteredSuggestions = songs
+      const normalizedInput = normalizeString(userInput);
+      
+      // Get the correct pool of songs based on the mode
+      const songPool = easyMode ? 
+        songs.filter(song => easySongs.includes(song.videoId)) : 
+        songs;
+      
+      const filteredSuggestions = songPool
         .filter(song => 
-          song.name.toLowerCase().includes(userInput.toLowerCase())
+          normalizeString(song.name).includes(normalizedInput)
         )
         .map(song => song.name);
       
@@ -301,8 +675,8 @@ const SongGuesser = () => {
       return;
     }
     
-    const normalizedGuess = guess.toLowerCase().trim();
-    const normalizedSongName = currentSong.name.toLowerCase().trim();
+    const normalizedGuess = normalizeString(guess);
+    const normalizedSongName = normalizeString(currentSong.name);
     
     if (normalizedGuess === normalizedSongName) {
       setResult('Correct! Well done!');
@@ -470,177 +844,6 @@ const SongGuesser = () => {
     };
   }, [playerKey, reloadYouTubePlayer]);
 
-  // Modify playSongClip to better handle mobile playback
-  const playSongClip = () => {
-    try {
-      // Clear any existing playback timeout
-      if (playbackTimeoutRef.current) {
-        clearTimeout(playbackTimeoutRef.current);
-        playbackTimeoutRef.current = null;
-      }
-      
-      setPlaybackTimedOut(false);
-      
-      if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.playVideo !== 'function') {
-        console.warn("YouTube player not ready when attempting to play, reloading player...");
-        reloadYouTubePlayer();
-        
-        // Show a temporary message to the user
-        setIsWaitingForPlayback(true);
-        
-        // Set a timeout to retry playing after a short delay
-        setTimeout(() => {
-          if (youtubePlayerRef.current && typeof youtubePlayerRef.current.playVideo === 'function') {
-            // Retry playing if player is ready now
-            youtubePlayerRef.current.seekTo(0);
-            
-            // On mobile, we need to ensure mute is off (some browsers require this)
-            try {
-              youtubePlayerRef.current.unMute();
-              youtubePlayerRef.current.setVolume(100);
-            } catch (e) {
-              console.warn("Could not unmute player:", e);
-            }
-            
-            youtubePlayerRef.current.playVideo();
-          } else {
-            // Reset state if still not ready after delay
-            setIsWaitingForPlayback(false);
-            setIsPlaying(false);
-          }
-        }, 1500);
-        
-        return;
-      }
-      
-      setIsPlaying(true);
-      setPlayingFullSong(false);
-      setIsWaitingForPlayback(true); // Indicate we're waiting for playback to start
-      
-      // Seek to beginning to ensure we're starting from 0:00
-      youtubePlayerRef.current.seekTo(0);
-      
-      // On mobile, we need to ensure mute is off (some browsers require this)
-      try {
-        youtubePlayerRef.current.unMute();
-        youtubePlayerRef.current.setVolume(100);
-      } catch (e) {
-        console.warn("Could not unmute player:", e);
-      }
-      
-      youtubePlayerRef.current.playVideo();
-      
-      // Set a timeout to detect if playback doesn't start within 5 seconds
-      playbackTimeoutRef.current = setTimeout(() => {
-        if (isWaitingForPlayback) {
-          console.warn("Playback didn't start within timeout, reloading player...");
-          reloadYouTubePlayer();
-        }
-      }, 5000);
-      
-    } catch (error) {
-      console.error("Error playing song clip:", error);
-      // Reset the state in case of an error
-      setIsPlaying(false);
-      setIsWaitingForPlayback(false);
-      
-      // Try to reload the player
-      reloadYouTubePlayer();
-    }
-  };
-
-  const playFullSong = () => {
-    try {
-      // Clear any existing playback timeout
-      if (playbackTimeoutRef.current) {
-        clearTimeout(playbackTimeoutRef.current);
-        playbackTimeoutRef.current = null;
-      }
-      
-      setPlaybackTimedOut(false);
-      
-      if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.playVideo !== 'function') {
-        console.warn("YouTube player not ready when attempting to play full song, reloading player...");
-        reloadYouTubePlayer();
-        
-        // Show a temporary message to the user
-        setIsWaitingForPlayback(true);
-        
-        // Set a timeout to retry playing after a short delay
-        setTimeout(() => {
-          if (youtubePlayerRef.current && typeof youtubePlayerRef.current.playVideo === 'function') {
-            // Retry playing if player is ready now
-            youtubePlayerRef.current.seekTo(0);
-            
-            // On mobile, we need to ensure mute is off (some browsers require this)
-            try {
-              youtubePlayerRef.current.unMute();
-              youtubePlayerRef.current.setVolume(100);
-            } catch (e) {
-              console.warn("Could not unmute player:", e);
-            }
-            
-            youtubePlayerRef.current.playVideo();
-            setIsPlaying(true);
-            setPlayingFullSong(true);
-            setIsWaitingForPlayback(false); // Reset waiting state once playback starts
-          } else {
-            // Reset state if still not ready after delay
-            setIsWaitingForPlayback(false);
-            setIsPlaying(false);
-          }
-        }, 1000); // Reduced delay for better user experience
-        
-        return;
-      }
-      
-      youtubePlayerRef.current.seekTo(0);
-      
-      // On mobile, ensure mute is off and volume is up
-      try {
-        youtubePlayerRef.current.unMute();
-        youtubePlayerRef.current.setVolume(100);
-      } catch (e) {
-        console.warn("Could not unmute player:", e);
-      }
-      
-      // Force player to be visible to iOS (but still visually hidden via CSS)
-      const playerElement = document.querySelector('iframe[src*="youtube"]');
-      if (playerElement) {
-        playerElement.style.position = 'absolute';
-        playerElement.style.opacity = '0';
-        playerElement.style.pointerEvents = 'none';
-        playerElement.style.zIndex = '-1';
-        playerElement.style.width = '1px';
-        playerElement.style.height = '1px';
-      }
-      
-      // Play the video
-      youtubePlayerRef.current.playVideo();
-      setIsPlaying(true);
-      setPlayingFullSong(true);
-      setIsWaitingForPlayback(true); // Indicate we're waiting for playback to start
-      
-      // Set a timeout to detect if playback doesn't start within 5 seconds
-      playbackTimeoutRef.current = setTimeout(() => {
-        if (isWaitingForPlayback) {
-          console.warn("Full song playback didn't start within timeout, reloading player...");
-          reloadYouTubePlayer();
-        }
-      }, 5000);
-      
-    } catch (error) {
-      console.error("Error playing full song:", error);
-      // Reset the state in case of an error
-      setIsPlaying(false);
-      setPlayingFullSong(false);
-      setIsWaitingForPlayback(false);
-      
-      // Try to reload the player
-      reloadYouTubePlayer();
-    }
-  };
-
   if (!currentSong) return <div>Loading...</div>;
 
   return (
@@ -649,8 +852,23 @@ const SongGuesser = () => {
         <h1>Revolution 1</h1>
         <p>Practice and test your knowledge of the Beatles core discography using the first second of a randomly selected song</p>
         
-        <div className="score-display">
-          Score: {score}
+        <div className="game-controls">
+          <div className="score-display">
+            Score: {score}
+          </div>
+          
+          <div className="mode-toggle">
+            <label className="toggle-switch">
+              <input 
+                type="checkbox" 
+                checked={easyMode} 
+                onChange={toggleEasyMode}
+              />
+              <span className="toggle-slider"></span>
+              <span className="toggle-label">Easy Mode</span>
+              <span className="toggle-hint">{easyMode ? '(50 popular songs)' : '(All songs)'}</span>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -691,13 +909,42 @@ const SongGuesser = () => {
 
         <div className="player-buttons">
           <div className="play-button-container">
-            <button 
-              className="play-button" 
-              onClick={playSongClip} 
-              disabled={isPlaying || showAnswer}
-            >
-              {isWaitingForPlayback ? 'LOADING...' : isPlaying && !playingFullSong ? `PLAYING ${clipDuration} SECOND${clipDuration !== 1 ? 'S' : ''}` : `PLAY ${clipDuration} SECOND${clipDuration !== 1 ? 'S' : ''}`}
-            </button>
+            {!showAnswer ? (
+              <button 
+                className="play-button" 
+                onClick={playSongClip} 
+                disabled={isPlaying}
+              >
+                {isWaitingForPlayback ? 'LOADING...' : isPlaying && !playingFullSong ? `PLAYING ${clipDuration} SECOND${clipDuration !== 1 ? 'S' : ''}` : `PLAY ${clipDuration} SECOND${clipDuration !== 1 ? 'S' : ''}`}
+              </button>
+            ) : playingFullSong ? (
+              <button 
+                type="button" 
+                className="stop-button" 
+                style={{width: '100%'}}
+                onClick={() => {
+                  try {
+                    if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.pauseVideo !== 'function') {
+                      console.warn("YouTube player not ready when attempting to stop, resetting state...");
+                      setIsPlaying(false);
+                      setPlayingFullSong(false);
+                      return;
+                    }
+                    
+                    youtubePlayerRef.current.pauseVideo();
+                    setIsPlaying(false);
+                    setPlayingFullSong(false);
+                  } catch (error) {
+                    console.error("Error stopping playback:", error);
+                    // Reset the state in case of an error
+                    setIsPlaying(false);
+                    setPlayingFullSong(false);
+                  }
+                }}
+              >
+                STOP
+              </button>
+            ) : null}
             
             {!showAnswer && clipDuration < 10 && (
               <button 
@@ -713,12 +960,14 @@ const SongGuesser = () => {
           <div className="keyboard-tip-container">
             {playbackTimedOut ? (
               <p className="keyboard-tip error">Player timed out. Click Play to try again.</p>
-            ) : !isPlaying && !showAnswer && (
+            ) : !isPlaying && !showAnswer ? (
               <p className="keyboard-tip">press ENTER to play</p>
-            )}
+            ) : (showAnswer && !isPlaying) ? (
+              <p className="keyboard-tip">press ENTER for next song</p>
+            ) : null}
           </div>
           
-          {/* New Give Up button that shows up after playing the snippet */}
+          {/* Give Up button that shows up after playing the snippet */}
           {!showAnswer && clipDuration > 0 && attemptsCount === 0 && (
             <button 
               className="give-up-button" 
@@ -758,22 +1007,34 @@ const SongGuesser = () => {
           )}
         </div>
         <div className="button-group">
-          <button 
-            type="submit" 
-            disabled={showAnswer || !guess.trim()}
-            className="submit-button"
-            style={{width: '100%'}}
-          >
-            SUBMIT
-          </button>
-          {attemptsCount > 0 && !showAnswer && (
+          {!showAnswer ? (
+            <>
+              <button 
+                type="submit" 
+                disabled={showAnswer || !guess.trim()}
+                className="submit-button"
+                style={{width: '100%'}}
+              >
+                SUBMIT
+              </button>
+              {attemptsCount > 0 && !showAnswer && (
+                <button 
+                  type="button" 
+                  onClick={handleGiveUp}
+                  className="give-up-button"
+                  style={{width: '100%'}}
+                >
+                  SHOW ANSWER
+                </button>
+              )}
+            </>
+          ) : (
             <button 
-              type="button" 
-              onClick={handleGiveUp}
-              className="give-up-button"
+              onClick={handleNextSong} 
+              className="next-button prominent-next"
               style={{width: '100%'}}
             >
-              SHOW ANSWER
+              NEXT SONG
             </button>
           )}
         </div>
@@ -788,59 +1049,6 @@ const SongGuesser = () => {
       {showAnswer && (
         <div className="answer">
           <p>The song was: <strong>{currentSong.name}</strong></p>
-          
-          <div className="button-group answer-buttons">
-            <button 
-              onClick={handleNextSong} 
-              className="next-button prominent-next"
-              style={{width: '100%'}}
-            >
-              NEXT SONG
-            </button>
-            
-            {!playingFullSong ? (
-              <button 
-                type="button" 
-                className="play-full-song-button" 
-                style={{width: '100%'}}
-                onClick={playFullSong} 
-                disabled={isPlaying}
-              >
-                {isPlaying ? 'PLAYING...' : 'PLAY FULL SONG'}
-              </button>
-            ) : (
-              <button 
-                type="button" 
-                className="stop-button" 
-                style={{width: '100%'}}
-                onClick={() => {
-                  try {
-                    if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.pauseVideo !== 'function') {
-                      console.warn("YouTube player not ready when attempting to stop, resetting state...");
-                      setIsPlaying(false);
-                      setPlayingFullSong(false);
-                      return;
-                    }
-                    
-                    youtubePlayerRef.current.pauseVideo();
-                    setIsPlaying(false);
-                    setPlayingFullSong(false);
-                  } catch (error) {
-                    console.error("Error stopping playback:", error);
-                    // Reset the state in case of an error
-                    setIsPlaying(false);
-                    setPlayingFullSong(false);
-                  }
-                }}
-              >
-                STOP
-              </button>
-            )}
-          </div>
-          
-          <div className="keyboard-tip-container">
-            <p className="keyboard-tip">press ENTER for next song</p>
-          </div>
         </div>
       )}
       
