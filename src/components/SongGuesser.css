@@ -333,6 +333,20 @@ h1 {
   cursor: not-allowed;
 }
 
+.stop-button {
+  background-color: var(--error);
+  color: white;
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+  display: block;
+  box-sizing: border-box;
+}
+
+.stop-button:hover {
+  background-color: #b71c1c;
+}
+
 .result {
   margin: 15px auto;
   padding: 15px;
@@ -423,15 +437,6 @@ h1 {
   background-color: #f5f5f5;
   color: var(--text-light);
   cursor: not-allowed;
-}
-
-.stop-button {
-  background-color: var(--error);
-  color: white;
-}
-
-.stop-button:hover {
-  background-color: #b71c1c;
 }
 
 .next-button {
@@ -716,6 +721,29 @@ h1 {
   .next-button {
     width: 100%;
     max-width: 280px;
+    margin: 0 auto;
+  }
+  
+  /* Fix for the stop button alignment */
+  .stop-button {
+    align-self: center;
+    margin: 0 auto;
+    display: block;
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+    position: relative;
+    left: 0;
+    right: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Ensure the play button container is centered */
+  .play-button-container {
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    width: 100%;
   }
   
   /* Ensure autocomplete is visible on mobile */

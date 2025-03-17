@@ -466,24 +466,28 @@ const SongGuesser = () => {
   // Handle keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event) => {
-      // Only handle global keyboard events if they're not from an input field
-      const isFromInput = event.target.tagName.toLowerCase() === 'input' || 
-                         event.target.tagName.toLowerCase() === 'textarea';
+      // Only handle global keyboard events if they're not from an input field with content
+      const isFromInput = (event.target.tagName.toLowerCase() === 'input' || 
+                         event.target.tagName.toLowerCase() === 'textarea');
+      
+      const inputHasContent = isFromInput && event.target.value.trim().length > 0;
       
       // If Enter is pressed and the answer is shown, go to next song
-      if (event.key === 'Enter' && showAnswer && !isFromInput) {
+      if (event.key === 'Enter' && showAnswer) {
         event.preventDefault(); // Prevent form submission
         handleNextSong();
+        return;
       }
       
-      // Play the song with Enter key if not typing in an input and not already playing
-      if (event.key === 'Enter' && !showAnswer && !isPlaying && !isFromInput) {
+      // Play the song with Enter key if not already playing and (not typing in an input with content)
+      if (event.key === 'Enter' && !showAnswer && !isPlaying && !inputHasContent) {
         event.preventDefault(); // Prevent form submission
         
         // Only try to play if we have a valid player reference
         if (youtubePlayerRef.current) {
           playSongClip();
         }
+        return;
       }
       
       // Focus on the input field when the game starts, but only on desktop
@@ -492,9 +496,10 @@ const SongGuesser = () => {
       }
     };
     
-    document.addEventListener('keydown', handleKeyDown);
+    // Add the event listener to the window object to ensure it works regardless of focus
+    window.addEventListener('keydown', handleKeyDown, true);
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keydown', handleKeyDown, true);
     };
   }, [showAnswer, isPlaying, handleNextSong, isMobileDevice, playSongClip]);
   
@@ -602,14 +607,6 @@ const SongGuesser = () => {
             
           default:
             break;
-        }
-      } else if (e.key === 'Enter' && !guess.trim() && !isPlaying && !showAnswer) {
-        // If Enter is pressed with empty input field, play the song snippet
-        e.preventDefault(); // Prevent form submission
-        
-        // Only try to play if we have a valid player reference
-        if (youtubePlayerRef.current) {
-          playSongClip();
         }
       }
     } catch (error) {
@@ -908,7 +905,7 @@ const SongGuesser = () => {
         </div>
 
         <div className="player-buttons">
-          <div className="play-button-container">
+          <div className="play-button-container" style={{ display: 'flex', justifyContent: 'center', width: '100%' }}>
             {!showAnswer ? (
               <button 
                 className="play-button" 
@@ -918,32 +915,42 @@ const SongGuesser = () => {
                 {isWaitingForPlayback ? 'LOADING...' : isPlaying && !playingFullSong ? `PLAYING ${clipDuration} SECOND${clipDuration !== 1 ? 'S' : ''}` : `PLAY ${clipDuration} SECOND${clipDuration !== 1 ? 'S' : ''}`}
               </button>
             ) : playingFullSong ? (
-              <button 
-                type="button" 
-                className="stop-button" 
-                style={{width: '100%'}}
-                onClick={() => {
-                  try {
-                    if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.pauseVideo !== 'function') {
-                      console.warn("YouTube player not ready when attempting to stop, resetting state...");
+              <div style={{ width: '100%', maxWidth: '440px', display: 'flex', justifyContent: 'center' }}>
+                <button 
+                  type="button" 
+                  className="stop-button" 
+                  style={{
+                    width: '100%',
+                    margin: '0 auto',
+                    alignSelf: 'center',
+                    display: 'block',
+                    position: 'relative',
+                    left: '0',
+                    right: '0'
+                  }}
+                  onClick={() => {
+                    try {
+                      if (!youtubePlayerRef.current || typeof youtubePlayerRef.current.pauseVideo !== 'function') {
+                        console.warn("YouTube player not ready when attempting to stop, resetting state...");
+                        setIsPlaying(false);
+                        setPlayingFullSong(false);
+                        return;
+                      }
+                      
+                      youtubePlayerRef.current.pauseVideo();
                       setIsPlaying(false);
                       setPlayingFullSong(false);
-                      return;
+                    } catch (error) {
+                      console.error("Error stopping playback:", error);
+                      // Reset the state in case of an error
+                      setIsPlaying(false);
+                      setPlayingFullSong(false);
                     }
-                    
-                    youtubePlayerRef.current.pauseVideo();
-                    setIsPlaying(false);
-                    setPlayingFullSong(false);
-                  } catch (error) {
-                    console.error("Error stopping playback:", error);
-                    // Reset the state in case of an error
-                    setIsPlaying(false);
-                    setPlayingFullSong(false);
-                  }
-                }}
-              >
-                STOP
-              </button>
+                  }}
+                >
+                  STOP
+                </button>
+              </div>
             ) : null}
             
             {!showAnswer && clipDuration < 10 && (
